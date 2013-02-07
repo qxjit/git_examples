@@ -22,7 +22,7 @@ MERGE_STRATEGIES = {
   'squash' => -> branch, *args do
     succeeded = _ "git merge --squash #{branch}", *args
     if succeeded
-      _ "git commit -m 'Squash merged #{branch}'"
+      commit "Squash merged #{branch}"
     end
   end
 }
@@ -85,6 +85,17 @@ def in_dir(dir, options = {})
   end
 end
 
+def commit(message)
+  _ "git commit -m '#{message}'"
+  show_head_sha
+end
+
+def show_head_sha
+  _ 'git log --oneline | head -n 1 |  sed "s/^/    Head is: /"',
+    silent: true,
+    show_output: true
+end
+
 def run(options)
   _ 'rm -rf example', silent: true
   _ 'mkdir -p example/master', silent: true
@@ -101,14 +112,14 @@ def run(options)
     puts "  Create initial config file on master"
     _ 'echo foo > config', silent: true
     _ 'git add config', silent: true
-    _ 'git commit -m "Initial Commit"'
+    commit 'Initial Commit'
     _ 'git push origin master'
 
     puts "  Start bobs_branch, edit config, and push for review"
     _ 'git checkout -b bobs_branch', silent: true
     _ 'echo bar >> config', silent: true
     _ 'git add config', silent: true
-    _ 'git commit -m "Added bar to config"', silent: true
+    commit 'Added bar to config'
     _ 'git push origin bobs_branch'
   end
 
@@ -120,7 +131,7 @@ def run(options)
     _ 'echo baz >> config', silent: true
 
     _ 'git add config', silent: true
-    _ 'git commit -m "Added baz to config"'
+    commit 'Added baz to config'
 
     puts "  Push our branch for review, then merge to master"
     _ 'git push origin alices_branch', silent: true
@@ -140,7 +151,7 @@ def run(options)
     _ 'git checkout --ours config', silent: true
     _ 'echo bar >> config', silent: true
     _ 'git add config', silent: true
-    _ 'git commit -m "Merging bobs_branch (conflict resolved)"'
+    commit 'Merging bobs_branch (conflict resolved)'
     _ 'git push origin master'
   end
 
@@ -149,7 +160,7 @@ def run(options)
     _ 'git checkout alices_branch', silent: true
     _ 'echo foo > new_file', silent: true
     _ 'git add new_file', silent: true
-    _ 'git commit -m "Adding new_file"', silent: true
+    commit 'Adding new_file'
 
     puts "  Merge latest master back to our branch"
 
@@ -157,6 +168,7 @@ def run(options)
     _ 'git pull', silent: true
     _ 'git checkout alices_branch', silent: true
     BRANCH_UDPATE_STRATEGIES[options[:update_strategy]].call
+    show_head_sha
 
     _ 'git push origin alices_branch', silent: true
 
