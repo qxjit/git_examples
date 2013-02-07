@@ -28,7 +28,7 @@ MERGE_STRATEGIES = {
 }
 
 opts = OptionParser.new do |opts|
-  opts.banner = "Usage: example.rb --update [update_strategy] --merge [merge_strategy]"
+  opts.banner = "Usage: #{$0} --update [update_strategy] --merge [merge_strategy]"
 
   opts.on("--update STRATEGY", "Strategy for updating branch. One of #{BRANCH_UDPATE_STRATEGIES.keys.join(', ')}") do |s|
     options[:update_strategy] = s
